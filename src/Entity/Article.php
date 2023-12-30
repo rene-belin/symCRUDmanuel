@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use App\Repository\ArticleRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: ArticleRepository::class)]
 class Article
@@ -14,9 +15,19 @@ class Article
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\Length(
+        min: 5,
+        max: 50,
+        minMessage: "Le nom d'un article doit comporter au moins {{ limit }} caractères",
+        maxMessage: "Le nom d'un article doit comporter au plus {{ limit }} caractères"
+    )]
     private ?string $nom = null;
 
     #[ORM\Column]
+    #[Assert\NotEqualTo(
+        value: 0,
+        message: "Le prix d'un article ne doit pas être égal à 0"
+    )]
     private ?float $prix = null;
 
     public function getId(): ?int
