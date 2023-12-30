@@ -7,15 +7,15 @@ use App\Entity\Article;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
-use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Session\Flash\FlashBagInterface;
 
 class IndexController extends AbstractController
 {
+    // Read
     #[Route("/", name: 'article_list')]
     public function home(EntityManagerInterface $entityManager): Response
     {
@@ -26,21 +26,19 @@ class IndexController extends AbstractController
         ]);
     }
 
-    #[Route("/article/save", name: 'app_article_save')]
-    public function save(EntityManagerInterface $entityManager, FlashBagInterface $flashBag): Response
+    #[Route("/article/{id}", name: "article_show")]
+    public function show(int $id, EntityManagerInterface $entityManager): Response
     {
-        $article = new Article();
-        $article->setNom('Article 3');
-        $article->setPrix(3500);
-        $entityManager->persist($article);
-        $entityManager->flush();
-
-        $flashBag->add('success', 'Article enregistré avec succès!');
-        return $this->redirectToRoute('article_list');
+        $article = $entityManager->getRepository(Article::class)->find($id);
+        if (!$article) {
+            throw $this->createNotFoundException('No article found for id ' . $id);
+        }
+        return $this->render('articles/show.html.twig', ['article' => $article]);
     }
 
+    // Create
     #[Route("/article/new", name: "new_article", methods: ["GET", "POST"])]
-    public function new(Request $request, EntityManagerInterface $entityManager, FlashBagInterface $flashBag): Response
+    public function new(Request $request, EntityManagerInterface $entityManager, SessionInterface $session): Response
     {
         $article = new Article();
         $form = $this->createFormBuilder($article)
@@ -53,25 +51,13 @@ class IndexController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->persist($article);
             $entityManager->flush();
-
-            $flashBag->add('success', 'Nouvel article créé avec succès!');
+            $session->getFlashBag()->add('success', 'Nouvel article créé avec succès!');
             return $this->redirectToRoute('article_list');
         }
-
         return $this->render('articles/new.html.twig', ['form' => $form->createView()]);
     }
 
-    #[Route("/article/{id}", name: "article_show")]
-    public function show(int $id, EntityManagerInterface $entityManager): Response
-    {
-        $article = $entityManager->getRepository(Article::class)->find($id);
-        if (!$article) {
-            throw $this->createNotFoundException('No article found for id ' . $id);
-        }
-
-        return $this->render('articles/show.html.twig', ['article' => $article]);
-    }
-
+    // Update
     #[Route("/article/edit/{id}", name: "edit_article", methods: ["GET", "POST"])]
     public function edit(Request $request, EntityManagerInterface $entityManager, int $id, SessionInterface $session): Response
     {
@@ -92,10 +78,10 @@ class IndexController extends AbstractController
             $session->getFlashBag()->add('success', 'Article modifié avec succès!');
             return $this->redirectToRoute('article_list');
         }
-
         return $this->render('articles/edit.html.twig', ['form' => $form->createView()]);
     }
 
+    // Delete
     #[Route("/article/delete/{id}", name: "delete_article", methods: ["POST"])]
     public function delete(Request $request, EntityManagerInterface $entityManager, int $id, SessionInterface $session): Response
     {
@@ -112,7 +98,6 @@ class IndexController extends AbstractController
         } else {
             $session->getFlashBag()->add('error', 'Invalid CSRF token.');
         }
-
         return $this->redirectToRoute('article_list');
     }
 }
