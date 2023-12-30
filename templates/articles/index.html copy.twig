@@ -1,39 +1,46 @@
 {% extends 'base.html.twig' %}
-
 {% block title %}
 	Liste des Articles
 {% endblock %}
-
 {% block body %}
 	{% if articles %}
 		<table id="articles" class="table table-striped">
 			<thead>
 				<tr>
-					<th>Nom</th>
-					<th>Prix</th>
-					<th>Catégorie</th>
-					<th>Actions</th>
+					<th>
+						Nom
+					</th>
+					<th>
+						Prix
+					</th>
+					<th>
+						Actions
+					</th>
 				</tr>
 			</thead>
 			<tbody>
 				{% for article in articles %}
 					<tr>
-						<td>{{ article.nom }}</td>
-						<td>{{ article.prix }}</td>
 						<td>
-							{# Check if the category is not null before accessing its titre attribute #}
-							{% if article.category %}
-								{{ article.category.titre }}
-							{% else %}
-								Pas de catégorie
-							{% endif %}
+							{{ article.nom }}
 						</td>
 						<td>
-							<a href="{{ path('article_show', {'id': article.id}) }}" class="btn btn-dark">Détails</a>
-							<a href="{{ path('edit_article', {'id': article.id}) }}" class="btn btn-dark">Modifier</a>
+							{{ article.prix }}
+						</td>
+						<td>{{ article.category.titre }}</td>
+
+						<td>
+							<a href="{{ path('article_show', {'id': article.id}) }}" class="btn btn-dark">
+								Détails
+							</a>
+							<a href="{{ path('edit_article', {'id': article.id}) }}" class="btn btn-dark">
+								Modifier
+							</a>
 							<form action="{{ path('delete_article', {'id': article.id}) }}" method="post" onsubmit="return confirm('Etes-vous sûr de supprimer cet article?');" style="display: inline;">
 								<input type="hidden" name="_token" value="{{ csrf_token('delete' ~ article.id) }}">
-								<button type="submit" class="btn btn-danger">Supprimer</button>
+								<button type="submit" class="btn btn-danger">
+									Supprimer
+								</button>
 							</form>
 						</td>
 					</tr>
@@ -41,7 +48,8 @@
 			</tbody>
 		</table>
 	{% else %}
-		<p>Aucun article</p>
+		<p>
+			Aucun article
+		</p>
 	{% endif %}
 {% endblock %}
-

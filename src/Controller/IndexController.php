@@ -4,7 +4,9 @@
 namespace App\Controller;
 
 use App\Entity\Article;
+use App\Entity\Category;
 use App\Form\ArticleType;
+use App\Form\CategoryType;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -84,4 +86,26 @@ class IndexController extends AbstractController
         }
         return $this->redirectToRoute('article_list');
     }
+
+    #[Route('/category/newCat', name: 'new_category', methods: ['GET', 'POST'])]
+    public function newCategory(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $category = new Category();
+        $form = $this->createForm(CategoryType::class, $category);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $entityManager->persist($category);
+            $entityManager->flush();
+
+            // Redirect to a route or add a flash message if needed
+        }
+
+        return $this->render('articles/newCategory.html.twig', [
+            'form' => $form->createView(),
+        ]);
+    }
+
+
+
 }
