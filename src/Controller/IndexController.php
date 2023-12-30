@@ -4,13 +4,14 @@
 namespace App\Controller;
 
 use App\Entity\Article;
+use App\Form\ArticleType;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
+use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 class IndexController extends AbstractController
@@ -25,8 +26,8 @@ class IndexController extends AbstractController
             'articles' => $articles
         ]);
     }
-
-    #[Route("/article/{id}", name: "article_show")]
+    // show
+    #[Route("/article/{id}", name: "article_show", requirements: ["id" => "\d+"])]
     public function show(int $id, EntityManagerInterface $entityManager): Response
     {
         $article = $entityManager->getRepository(Article::class)->find($id);
@@ -36,22 +37,18 @@ class IndexController extends AbstractController
         return $this->render('articles/show.html.twig', ['article' => $article]);
     }
 
-    // Create
+    // Create/new
     #[Route("/article/new", name: "new_article", methods: ["GET", "POST"])]
     public function new(Request $request, EntityManagerInterface $entityManager, SessionInterface $session): Response
     {
         $article = new Article();
-        $form = $this->createFormBuilder($article)
-            ->add('nom', TextType::class)
-            ->add('prix', TextType::class)
-            ->add('save', SubmitType::class, ['label' => 'Créer'])
-            ->getForm();
-
+        $form = $this->createForm(ArticleType::class, $article);
         $form->handleRequest($request);
+
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->persist($article);
             $entityManager->flush();
-            $session->getFlashBag()->add('success', 'Nouvel article créé avec succès!');
+
             return $this->redirectToRoute('article_list');
         }
         return $this->render('articles/new.html.twig', ['form' => $form->createView()]);
