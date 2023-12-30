@@ -1,10 +1,23 @@
 {% extends 'base.html.twig' %}
-
 {% block title %}
 	Liste des Articles
 {% endblock %}
-
 {% block body %}
+	{{ form_start(form) }}
+	{# RECHERCHE #}
+	<div class="form-row align-items-end">
+		<div class="col">
+			{{ form_row(form.nom) }}
+		</div>
+
+		<div class="col">
+			<div class="form-group">
+				<button type="submit" class="btn btn-success">Rechercher</button>
+			</div>
+		</div>
+	</div>
+{{ form_end(form) }}
+	{# FIN RECHERCHE #}
 	{% if articles %}
 		<table id="articles" class="table table-striped">
 			<thead>
@@ -21,7 +34,6 @@
 						<td>{{ article.nom }}</td>
 						<td>{{ article.prix }}</td>
 						<td>
-							{# Check if the category is not null before accessing its titre attribute #}
 							{% if article.category %}
 								{{ article.category.titre }}
 							{% else %}
@@ -44,4 +56,3 @@
 		<p>Aucun article</p>
 	{% endif %}
 {% endblock %}
-

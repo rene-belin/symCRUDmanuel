@@ -5,8 +5,13 @@ namespace App\Controller;
 
 use App\Entity\Article;
 use App\Entity\Category;
+use App\Entity\Recherche;
+
 use App\Form\ArticleType;
 use App\Form\CategoryType;
+use App\Form\RechercheType;
+
+use App\Repository\ArticleRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -16,11 +21,30 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 class IndexController extends AbstractController
 {
-    #[Route("/", name: "article_list")]
-    public function home(EntityManagerInterface $entityManager): Response
+    // RECHERCHE
+    #[Route('/', name: 'article_list')]
+    public function home(Request $request, ArticleRepository $articleRepository): Response
     {
-        $articles = $entityManager->getRepository(Article::class)->findAll();
+        $Recherche = new Recherche();
+        $form = $this->createForm(RechercheType::class, $Recherche);
+        $form->handleRequest($request);
+
+        $articles = [];
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $nom = $Recherche->getNom();
+
+            if ($nom != "") {
+                // If a name is provided, display all articles with that name
+                $articles = $articleRepository->findBy(['nom' => $nom]);
+            } else {
+                // If no name is provided, display all articles
+                $articles = $articleRepository->findAll();
+            }
+        }
+
         return $this->render('articles/index.html.twig', [
+            'form' => $form->createView(),
             'articles' => $articles
         ]);
     }
@@ -109,3 +133,5 @@ class IndexController extends AbstractController
 
 
 }
+
+
